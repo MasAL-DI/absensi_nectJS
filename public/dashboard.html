@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi RFID — SMKN 1 Pabelan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0d1117; --surface: #161b22; --surface2: #1c2128;
+  --border:  #30363d; --text:    #e6edf3; --muted:    #7d8590;
+  --green:   #3fb950; --amber:   #d29922; --red:      #f85149;
+  --blue:    #58a6ff; --purple:  #a5d6ff;
+  --green-d: #0d2a14; --amber-d: #2d1f00; --red-d:   #2d0f0e; --blue-d: #0c1e3a;
+  --accent:  #238636;
+}
+
+/* ===== LIGHT THEME ===== */
+body.light {
+  --bg:      #f6f8fa; --surface: #ffffff; --surface2: #f0f2f5;
+  --border:  #d0d7de; --text:    #1f2328; --muted:    #656d76;
+  --green:   #1a7f37; --amber:   #9a6700; --red:      #cf222e;
+  --blue:    #0969da; --purple:  #6639ba;
+  --green-d: #dafbe1; --amber-d: #fff8c5; --red-d:   #ffebe9; --blue-d: #ddf4ff;
+  --accent:  #1a7f37;
+}
+body.light .topbar { box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+body.light .sc::after { opacity: .7; }
+body.light tr:hover td { background: rgba(0,0,0,.03); }
+
+/* Tombol toggle theme */
+.btn-theme {
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .2s;
+  line-height: 1;
+}
+.btn-theme:hover { border-color: var(--blue); color: var(--blue); }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* LOGIN */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#0d2a1a 0%,var(--bg) 65%)}
+.lcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2.5rem;width:340px}
+.lcard h2{font-size:20px;font-weight:700;margin-bottom:6px}
+.lcard p{font-size:13px;color:var(--muted);margin-bottom:1.5rem}
+.fg{margin-bottom:1rem}
+.fg label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
+.fg input{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:14px;font-family:inherit}
+.fg input:focus{outline:none;border-color:var(--green)}
+.btn-login{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-top:4px}
+.btn-login:hover{opacity:.85}
+.err{font-size:13px;color:var(--red);background:var(--red-d);border:1px solid #6e1a18;border-radius:6px;padding:8px 12px;margin-bottom:12px;display:none}
+
+/* TOPBAR */
+#app{display:none}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);height:52px;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-l{display:flex;align-items:center;gap:10px}
+.tlogo{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.topbar h1{font-size:14px;font-weight:700}
+.topbar-r{display:flex;align-items:center;gap:10px}
+.tclock{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.tuser{font-size:12px;color:var(--muted)}
+.trole{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--green-d);color:var(--green);border:1px solid #1a4a23;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.btn-out{padding:5px 12px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-out:hover{border-color:var(--red);color:var(--red)}
+
+/* LAYOUT */
+.wrap{max-width:1300px;margin:0 auto;padding:1.25rem}
+
+/* TABS */
+.tabs{display:flex;gap:3px;margin-bottom:1.25rem;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:4px;width:fit-content}
+.tab{padding:6px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:none;font-family:inherit;transition:all .2s}
+.tab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.25rem}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;position:relative;overflow:hidden}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc.g::after{background:var(--green)}.sc.a::after{background:var(--amber)}.sc.r::after{background:var(--red)}.sc.b::after{background:var(--blue)}.sc.p::after{background:#8957e5}
+.sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px}
+.sv{font-size:32px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.sc.g .sv{color:var(--green)}.sc.a .sv{color:var(--amber)}.sc.r .sv{color:var(--red)}.sc.b .sv{color:var(--blue)}.sc.p .sv{color:#8957e5}
+.ss{font-size:11px;color:var(--muted);margin-top:5px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem}
+.ct{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:7px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:9px 10px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.mono{font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* BADGE */
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.03em}
+.badge.hadir{background:var(--green-d);color:var(--green);border:1px solid #1e4a26}
+.badge.terlambat{background:var(--amber-d);color:var(--amber);border:1px solid #5a3a00}
+.badge.alpha{background:var(--red-d);color:var(--red);border:1px solid #5a1a18}
+.badge.pulang,.badge.tepat_waktu{background:var(--blue-d);color:var(--blue);border:1px solid #1a3a6a}
+.badge.lebih_awal{background:#1a1a3a;color:#8957e5;border:1px solid #3a2a6a}
+.badge.badge-g{background:var(--green-d);color:var(--green);border:1px solid #1e4a26}
+.badge.badge-m{background:var(--surface2);color:var(--muted);border:1px solid var(--border)}
+.badge.keluar{background:var(--amber-d);color:var(--amber);border:1px solid #5a3a00}
+.badge.kembali,.badge.menunggu{background:var(--green-d);color:var(--green);border:1px solid #1e4a26}
+
+/* BAR */
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.blbl{width:55px;font-size:12px;color:var(--muted);flex-shrink:0}
+.btrk{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.bfil{height:100%;border-radius:3px;transition:width .6s}
+.bpct{width:32px;text-align:right;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+
+/* FILTER */
+.fbar{display:flex;gap:7px;margin-bottom:.9rem;flex-wrap:wrap;align-items:center}
+.fbar select,.fbar input[type=date],.fbar input[type=month]{padding:6px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit}
+.fbar select:focus,.fbar input:focus{outline:none;border-color:var(--green)}
+.btn{padding:6px 14px;border:none;border-radius:6px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.btn-g{background:var(--accent);color:#fff}
+.btn-r{background:#da3633;color:#fff}
+.btn-b{background:#1f6feb;color:#fff}
+
+/* IZIN KELUAR */
+.izin-wrap{display:flex;flex-direction:column;gap:8px}
+.izin-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.izin-info{flex:1}
+.izin-name{font-weight:600;font-size:13px}
+.izin-detail{font-size:12px;color:var(--muted);margin-top:2px}
+.btn-batalkan{padding:4px 10px;background:var(--red-d);border:1px solid #6e1a18;color:var(--red);border-radius:5px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600}
+
+/* FORM BUKA IZIN */
+.form-izin{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:.75rem}
+.form-izin .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.form-izin label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px}
+.form-izin input,.form-izin select{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit}
+.form-izin input:focus,.form-izin select:focus{outline:none;border-color:var(--green)}
+
+/* FORM SISWA */
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fgrid2 .full{grid-column:1/-1}
+.fgrid2 label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px}
+.fgrid2 input,.fgrid2 select{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit}
+.fgrid2 input:focus,.fgrid2 select:focus{outline:none;border-color:var(--green)}
+
+.dot{width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.empty{text-align:center;color:var(--muted);padding:1.5rem;font-size:13px}
+.msg-ok{font-size:13px;color:var(--green);margin-bottom:8px;display:none}
+.msg-err{font-size:13px;color:var(--red);margin-bottom:8px;display:none}
+
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.g2,.g3{grid-template-columns:1fr}.fgrid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- MODE PUBLIK (tanpa login, read-only) -->
+<div id="publik">
+  <div class="topbar">
+    <div class="topbar-l">
+      <div class="tlogo">🏫</div>
+      <h1>Absensi RFID — SMKN 1 Pabelan</h1>
+    </div>
+    <div class="topbar-r">
+      <span class="tclock" id="tclock-publik"></span>
+      <button class="btn-theme" onclick="toggleTheme()" id="btn-theme-publik" title="Ganti tema">🌙</button>
+      <button class="btn-out" onclick="tampilLogin()" style="background:var(--green-d);color:var(--green);border-color:#1a4a23">🔑 Login Admin</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="sc g"><div class="sl">Hadir</div><div class="sv" id="p-hadir">—</div><div class="ss">tap masuk hari ini</div></div>
+      <div class="sc a"><div class="sl">Terlambat</div><div class="sv" id="p-terlambat">—</div><div class="ss">lewat batas waktu</div></div>
+      <div class="sc r"><div class="sl">Alpha</div><div class="sv" id="p-alpha">—</div><div class="ss">belum tap masuk</div></div>
+      <div class="sc b"><div class="sl">Sudah Pulang</div><div class="sv" id="p-pulang">—</div><div class="ss">tap pulang hari ini</div></div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Kehadiran Per Kelas — <span id="p-tanggal"></span></div>
+      <table>
+        <thead><tr><th>Kelas</th><th>Total</th><th>Hadir</th><th>Terlambat</th><th>Alpha</th></tr></thead>
+        <tbody id="p-perkelas-tbody"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+      </table>
+    </div>
+
+    <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:16px">
+      Halaman ini tidak menampilkan nama siswa · Data diperbarui otomatis
+    </p>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login" style="display:none">
+  <div class="lcard">
+    <h2>🏫 Absensi RFID</h2>
+    <p>SMKN 1 Pabelan — Sistem Absensi Gerbang</p>
+    <div id="lerr" class="err"></div>
+    <div class="fg"><label>Username</label><input id="lu" type="text" placeholder="admin" autocomplete="username"></div>
+    <div class="fg"><label>Password</label><input id="lp" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn-login" onclick="doLogin()">Masuk</button>
+    <button class="btn-login" onclick="tampilPublik()" style="background:var(--surface2);color:var(--muted);margin-top:8px">← Kembali ke tampilan publik</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-l">
+      <div class="tlogo">🏫</div>
+      <h1>Absensi RFID — SMKN 1 Pabelan</h1>
+    </div>
+    <div class="topbar-r">
+      <span class="tclock" id="tclock"></span>
+      <span class="tuser" id="tuser"></span>
+      <span class="trole" id="trole"></span>
+      <button class="btn-theme" onclick="toggleTheme()" id="btn-theme" title="Ganti tema">🌙</button>
+      <button class="btn-out" onclick="doLogout()">Keluar</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dashboard',this)">Dashboard</button>
+      <button class="tab" onclick="switchTab('izin',this)">Izin Keluar</button>
+      <button class="tab" onclick="switchTab('sesi',this)">🕐 Sesi Absensi</button>
+      <button class="tab" onclick="switchTab('absensi',this)">Log Absensi</button>
+      <button class="tab" onclick="switchTab('rekap',this)">Rekap</button>
+      <button class="tab" onclick="switchTab('perpus',this)">📚 Perpustakaan</button>
+      <button class="tab" onclick="switchTab('siswa',this)">Data Siswa</button>
+      <button class="tab" onclick="switchTab('import',this)">📥 Import Data</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab-pane active">
+      <div class="stats">
+        <div class="sc g"><div class="sl">Hadir</div><div class="sv" id="s-hadir">—</div><div class="ss">tap masuk hari ini</div></div>
+        <div class="sc a"><div class="sl">Terlambat</div><div class="sv" id="s-telat">—</div><div class="ss">lewat batas waktu</div></div>
+        <div class="sc r"><div class="sl">Alpha</div><div class="sv" id="s-alpha">—</div><div class="ss">belum tap masuk</div></div>
+        <div class="sc b"><div class="sl">Sudah Pulang</div><div class="sv" id="s-pulang">—</div><div class="ss">tap pulang hari ini</div></div>
+        <div class="sc p"><div class="sl">Di Sekolah</div><div class="sv" id="s-sekolah">—</div><div class="ss">belum tap pulang</div></div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="ct"><span class="dot"></span>Tap Terakhir</div>
+          <table>
+            <thead><tr><th>Nama</th><th>Kelas</th><th>Masuk</th><th>Pulang</th><th>Status</th></tr></thead>
+            <tbody id="scan-tbody"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="ct">Kehadiran per Kelas</div>
+          <div id="kelas-bars"><p class="empty">Memuat...</p></div>
+        </div>
+      </div>
+
+      <!-- Izin keluar aktif di dashboard -->
+      <div class="card">
+        <div class="ct">⚠️ Siswa Sedang di Luar</div>
+        <div id="izin-aktif-dash"><p class="empty">Tidak ada siswa di luar</p></div>
+      </div>
+    </div>
+
+    <!-- SESI ABSENSI (Dzuhur, Ekskul, dll) -->
+    <div id="tab-sesi" class="tab-pane">
+      <div class="g2">
+        <div class="card">
+          <div class="ct">🟢 Sesi Aktif Sekarang</div>
+          <div id="sesi-aktif-list"><p class="empty">Memuat...</p></div>
+
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+            <div style="font-weight:600;margin-bottom:10px">Buka Sesi Baru</div>
+            <label style="font-size:12px;color:var(--muted)">NAMA SESI</label>
+            <input type="text" id="sesi-nama" placeholder="Contoh: Absen Dzuhur, Ekskul Sepak Bola" style="width:100%;margin-bottom:10px">
+
+            <label style="font-size:12px;color:var(--muted)">PILIH DEVICE (boleh lebih dari 1)</label>
+            <div id="sesi-device-list" style="margin-bottom:10px;padding:10px;border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto">
+              <p class="empty" style="margin:0">Memuat daftar device...</p>
+            </div>
+
+            <button class="btn btn-g" style="width:100%" onclick="bukaSesi()">Buka Sesi Absensi</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ct">Riwayat Sesi Hari Ini</div>
+          <table>
+            <thead><tr><th>Nama Sesi</th><th>Device</th><th>Jam Buka</th><th>Jam Tutup</th><th>Tap</th><th>Status</th><th></th></tr></thead>
+            <tbody id="sesi-riwayat-tbody"><tr><td colspan="7" class="empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detail siswa yang tap di sesi tertentu -->
+      <div class="card" id="sesi-detail-card" style="display:none">
+        <div class="ct" id="sesi-detail-title">Detail Sesi</div>
+        <table>
+          <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Device</th><th>Jam Tap</th></tr></thead>
+          <tbody id="sesi-detail-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- IZIN KELUAR -->
+    <div id="tab-izin" class="tab-pane">
+      <div class="g2">
+        <div class="card">
+          <div class="ct">Izin Keluar Aktif Hari Ini</div>
+          <div id="izin-list"><p class="empty">Tidak ada izin aktif</p></div>
+
+          <!-- Form buka izin baru -->
+          <div class="form-izin">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">Buka Izin Keluar Baru</div>
+            <div class="fgrid">
+              <div>
+                <label>Cari Siswa</label>
+                <input id="iz-cari" type="text" placeholder="Ketik nama/NIS..." oninput="cariSiswa()">
+              </div>
+              <div>
+                <label>Alasan</label>
+                <input id="iz-alasan" type="text" placeholder="Keperluan keluar...">
+              </div>
+            </div>
+            <div id="iz-hasil" style="margin-bottom:8px"></div>
+            <div id="iz-msg-ok" class="msg-ok"></div>
+            <div id="iz-msg-err" class="msg-err"></div>
+            <button class="btn btn-g" onclick="bukaIzin()" style="width:100%">Buka Sesi Izin Keluar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ct">Riwayat Izin Hari Ini</div>
+          <table>
+            <thead><tr><th>Nama</th><th>Kelas</th><th>Keluar</th><th>Kembali</th><th>Status</th></tr></thead>
+            <tbody id="izin-history"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG ABSENSI -->
+    <div id="tab-absensi" class="tab-pane">
+      <div class="card">
+        <div class="ct">Log Absensi Harian</div>
+        <div class="fbar">
+          <input type="date" id="f-tgl">
+          <select id="f-kls"><option value="">Semua Kelas</option></select>
+          <button class="btn btn-g" onclick="loadAbsensi()">Tampilkan</button>
+        </div>
+        <table>
+          <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>Masuk</th><th>Status Masuk</th><th>Pulang</th><th>Status Pulang</th></tr></thead>
+          <tbody id="abs-tbody"><tr><td colspan="7" class="empty">Pilih tanggal</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REKAP -->
+    <div id="tab-rekap" class="tab-pane">
+      <div class="card">
+        <div class="ct">Rekap Kehadiran</div>
+
+        <!-- Pilihan Mode -->
+        <div style="display:flex;gap:4px;margin-bottom:.85rem">
+          <button id="rmode-harian"   class="btn" style="background:var(--accent);color:#fff;font-size:12px;padding:5px 14px" onclick="setRekapMode('harian')">Harian</button>
+          <button id="rmode-mingguan" class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-size:12px;padding:5px 14px" onclick="setRekapMode('mingguan')">Mingguan</button>
+          <button id="rmode-bulanan"  class="btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);font-size:12px;padding:5px 14px" onclick="setRekapMode('bulanan')">Bulanan</button>
+        </div>
+
+        <div class="fbar">
+          <select id="r-kls"><option value="">Pilih Kelas</option></select>
+
+          <!-- Input harian -->
+          <input type="date"  id="r-tgl"  style="display:block">
+          <!-- Input mingguan -->
+          <input type="week"  id="r-mggu" style="display:none">
+          <!-- Input bulanan -->
+          <input type="month" id="r-bln"  style="display:none">
+
+          <button class="btn btn-g" onclick="loadRekap()">Tampilkan</button>
+          <button class="btn btn-b" onclick="exportRekapCSV()" id="btn-export-rekap" style="display:none">⬇️ Export CSV</button>
+        </div>
+
+        <div id="rekap-table-wrap">
+          <table id="rekap-table">
+            <thead id="rekap-thead">
+              <tr><th>NIS</th><th>Nama</th><th>Status Masuk</th><th>Jam Masuk</th><th>Status Pulang</th><th>Jam Pulang</th></tr>
+            </thead>
+            <tbody id="rekap-tbody"><tr><td colspan="6" class="empty">Pilih kelas dan periode</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PERPUSTAKAAN -->
+    <div id="tab-perpus" class="tab-pane">
+      <div class="g2">
+        <div class="card">
+          <div class="ct">📋 Menunggu Diisi Judul Buku</div>
+          <div id="perpus-pending-list"><p class="empty">Memuat...</p></div>
+        </div>
+
+        <div class="card">
+          <div class="ct">📖 Sedang Dipinjam</div>
+          <table>
+            <thead><tr><th>NIS</th><th>Nama</th><th>Judul</th><th>Tgl Pinjam</th><th></th></tr></thead>
+            <tbody id="perpus-dipinjam-tbody"><tr><td colspan="5" class="empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">📜 Riwayat Pengembalian</div>
+        <table>
+          <thead><tr><th>NIS</th><th>Nama</th><th>Judul</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Dicatat Oleh</th></tr></thead>
+          <tbody id="perpus-riwayat-tbody"><tr><td colspan="6" class="empty">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- Modal sederhana isi judul buku -->
+      <div id="perpus-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;align-items:center;justify-content:center">
+        <div class="card" style="max-width:380px;width:90%">
+          <div class="ct">Input Judul Buku</div>
+          <p id="perpus-modal-nama" style="font-size:14px;margin-bottom:10px;color:var(--muted)"></p>
+          <input type="text" id="perpus-modal-judul" placeholder="Judul buku..." style="width:100%;margin-bottom:10px">
+          <div style="display:flex;gap:8px">
+            <button class="btn" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text)" onclick="tutupModalPerpus()">Batal</button>
+            <button class="btn btn-g" style="flex:1" onclick="simpanPeminjaman()">Simpan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IMPORT DATA -->
+    <div id="tab-import" class="tab-pane">
+      <div class="g2">
+
+        <!-- Kolom kiri: Import Excel -->
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+
+          <!-- Download template -->
+          <div class="card">
+            <div class="ct">⬇️ Langkah 1 — Unduh Template Excel</div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem;line-height:1.6">Unduh dulu template Excel-nya. Isi data siswa di sana, lalu upload kembali. Kolom <b>uid_rfid</b> boleh dikosongkan dulu.</p>
+            <button class="btn btn-b" onclick="downloadTemplate()" style="width:100%">⬇️ Unduh Template Excel</button>
+          </div>
+
+          <!-- Upload file -->
+          <div class="card">
+            <div class="ct">📂 Langkah 2 — Upload File Excel / CSV</div>
+            <div id="imp-dropzone" onclick="document.getElementById('imp-file').click()"
+              ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
+              ondragleave="this.style.borderColor='var(--border)'"
+              ondrop="handleImpDrop(event)"
+              style="border:1.5px dashed var(--border);border-radius:8px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--surface2)">
+              <div style="font-size:28px;margin-bottom:6px">📊</div>
+              <p style="font-size:13px;color:var(--muted)">Klik di sini atau <b>seret file</b> ke area ini</p>
+              <p style="font-size:12px;color:var(--muted);margin-top:4px">Mendukung: .xlsx, .xls, .csv</p>
+            </div>
+            <input type="file" id="imp-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImpFile(this.files[0])">
+          </div>
+
+          <!-- Kolom mapping -->
+          <div class="card" id="imp-map-card" style="display:none">
+            <div class="ct">🔗 Langkah 3 — Cocokkan Kolom</div>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:.75rem">Jika pakai template, kolom sudah otomatis terdeteksi.</p>
+            <div id="imp-col-map" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+          </div>
+
+          <!-- Preview -->
+          <div class="card" id="imp-preview-card" style="display:none">
+            <div class="ct">👁️ Preview Data <span id="imp-count" style="margin-left:auto;font-size:12px;font-weight:400"></span></div>
+            <div style="overflow:auto;max-height:200px;border:1px solid var(--border);border-radius:6px">
+              <table style="width:100%;border-collapse:collapse;font-size:12px" id="imp-preview-tbl"></table>
+            </div>
+          </div>
+
+          <!-- Tombol import -->
+          <div id="imp-action-card" style="display:none;flex-direction:column;gap:8px">
+            <div id="imp-msg-ok"  class="msg-ok"></div>
+            <div id="imp-msg-err" class="msg-err"></div>
+            <div id="imp-prog-wrap" style="display:none">
+              <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div id="imp-prog-fill" style="height:100%;background:var(--green);border-radius:3px;transition:width .3s;width:0%"></div>
+              </div>
+              <p id="imp-prog-lbl" style="font-size:12px;color:var(--muted);margin-top:4px;text-align:center"></p>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-g" onclick="doImport()" style="flex:1">🚀 Import Semua Data Siswa</button>
+              <button class="btn" onclick="resetImport()">Batal</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Kolom kanan: Scan RFID -->
+        <div style="display:flex;flex-direction:column;gap:.75rem">
+
+          <div class="card">
+            <div class="ct">
+              <span id="rfid-pulse" style="width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;margin-right:4px;transition:background .3s"></span>
+              Scan UID RFID — ESP32 Serial
+            </div>
+
+            <!-- Koneksi Serial -->
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                <div>
+                  <div style="font-size:13px;font-weight:600" id="serial-status-lbl">🔌 ESP32 belum terhubung</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px">Gunakan Chrome/Edge · Hubungkan ESP32 via kabel USB</div>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button id="btn-serial-connect" class="btn btn-b" onclick="serialHubungkan()" style="font-size:12px">🔌 Hubungkan ESP32</button>
+                  <button id="btn-serial-disconnect" class="btn btn-r" onclick="serialPutuskan()" style="font-size:12px;display:none">⏹ Putuskan</button>
+                </div>
+              </div>
+              <!-- Log serial mini -->
+              <div id="serial-log" style="margin-top:8px;display:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 8px;max-height:60px;overflow-y:auto;line-height:1.6"></div>
+            </div>
+
+            <!-- Cari siswa -->
+            <div style="margin-bottom:8px">
+              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px">Pilih Siswa</label>
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+                <select id="rfid-kelas-filter" onchange="filterRfidSiswa()" style="flex:0 0 130px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit">
+                  <option value="">Semua Kelas</option>
+                </select>
+                <input id="rfid-cari" type="text" placeholder="Ketik nama atau NIS..." oninput="filterRfidSiswa()"
+                  style="flex:1;min-width:140px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit">
+                <button class="btn btn-b" onclick="muatSiswaRfid()" style="white-space:nowrap;font-size:12px">🔄 Muat</button>
+              </div>
+            </div>
+
+            <!-- Daftar siswa -->
+            <div id="rfid-siswa-list" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:10px;border:1px solid var(--border);border-radius:6px;padding:6px">
+              <p style="font-size:13px;color:var(--muted);text-align:center;padding:.5rem">Klik tombol Muat untuk tampilkan daftar siswa</p>
+            </div>
+
+
+            <!-- Display UID -->
+            <div id="rfid-display"
+              style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;text-align:center;padding:1rem;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--muted);letter-spacing:.12em;min-height:70px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;transition:all .3s">
+              Pilih siswa dulu
+            </div>
+
+            <!-- Input manual -->
+            <div style="margin-bottom:8px">
+              <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:4px">Atau Ketik / Paste UID Manual</label>
+              <div style="display:flex;gap:6px">
+                <input id="rfid-manual" type="text" placeholder="Contoh: A1:B2:C3:D4"
+                  style="flex:1;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace">
+                <button class="btn btn-b" onclick="pakaiUIDManual()" style="font-size:12px">Pakai</button>
+              </div>
+            </div>
+
+            <div id="rfid-msg-ok"  class="msg-ok"></div>
+            <div id="rfid-msg-err" class="msg-err"></div>
+            <button id="rfid-btn-simpan" class="btn btn-g" onclick="simpanUID()" style="width:100%;display:none">💾 Simpan UID ke Siswa Ini</button>
+          </div>
+
+          <!-- Panduan singkat -->
+          <div class="card">
+            <div class="ct">📖 Panduan Cepat</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.9">
+              <b style="color:var(--text)">Import Excel:</b><br>
+              1. Unduh template → isi data siswa<br>
+              2. Upload file → klik Import<br><br>
+              <b style="color:var(--text)">Daftarkan kartu RFID (ESP32):</b><br>
+              1. Colokkan ESP32 ke komputer via USB<br>
+              2. Klik <b style="color:var(--blue)">Hubungkan ESP32</b> → pilih port COM<br>
+              3. Klik nama siswa dari daftar<br>
+              4. Tap kartu ke ESP32 → UID otomatis terbaca<br>
+              5. Klik <b style="color:var(--green)">Simpan UID</b> → lanjut siswa berikutnya<br><br>
+              <b style="color:var(--amber)">⚠️ Syarat:</b> Harus pakai browser <b style="color:var(--text)">Chrome atau Edge</b>.<br>
+              <b style="color:var(--amber)">💡 Tips:</b> Tutup dulu Serial Monitor Arduino IDE sebelum hubungkan — tidak bisa dipakai bersamaan.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- DATA SISWA -->
+    <div id="tab-siswa" class="tab-pane">
+      <div class="g2">
+        <div class="card">
+          <div class="ct">Daftar Siswa</div>
+          <div class="fbar">
+            <select id="fs-kls" onchange="loadSiswa()"><option value="">Semua Kelas</option></select>
+          </div>
+          <table>
+            <thead><tr><th>NIS</th><th>Nama</th><th>Kelas</th><th>UID RFID</th></tr></thead>
+            <tbody id="siswa-tbody"><tr><td colspan="4" class="empty">Memuat...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="ct">Tambah / Edit Siswa</div>
+          <div class="fgrid2">
+            <div><label>NIS</label><input id="si-nis" placeholder="2024001"></div>
+            <div><label>Kelas</label>
+              <select id="si-kls">
+                <option>X-A</option><option>X-B</option><option>X-C</option>
+                <option>XI-A</option><option>XI-B</option><option>XI-C</option>
+                <option>XII-A</option><option>XII-B</option><option>XII-C</option>
+              </select>
+            </div>
+            <div class="full"><label>Nama Lengkap</label><input id="si-nama" placeholder="Nama siswa"></div>
+            <div><label>Jenis Kelamin</label><select id="si-jk"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+            <div><label>HP Orang Tua</label><input id="si-hp" placeholder="08xx"></div>
+            <div class="full"><label>UID RFID</label><input id="si-uid" placeholder="A1:B2:C3:D4"></div>
+          </div>
+          <div id="si-ok" class="msg-ok"></div>
+          <div id="si-err" class="msg-err"></div>
+          <button class="btn btn-g" onclick="simpanSiswa()" style="width:100%">Simpan Siswa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const API = '/api'; 
+
+let token    = localStorage.getItem('rfid_token') || '';
+let userData = JSON.parse(localStorage.getItem('rfid_user') || '{}');
+let siswaList = [];
+let izinSiswaId = null;
+
+document.getElementById('f-tgl').value = today();
+document.getElementById('r-bln').value = thisMonth();
+document.getElementById('r-tgl').value = today();
+updateClock();
+setInterval(updateClock, 1000);
+
+// ===== THEME =====
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  const icon = isLight ? '🌑' : '🌙';
+  const b1 = document.getElementById('btn-theme');
+  const b2 = document.getElementById('btn-theme-publik');
+  if (b1) b1.textContent = icon;
+  if (b2) b2.textContent = icon;
+  localStorage.setItem('rfid_theme', isLight ? 'light' : 'dark');
+}
+
+// Terapkan tema tersimpan saat load
+(function() {
+  if (localStorage.getItem('rfid_theme') === 'light') {
+    document.body.classList.add('light');
+    // Tombol belum ada saat ini, diset saat initApp
+  }
+})();
+
+function today()     { return new Date().toISOString().split('T')[0]; }
+function thisMonth() { return new Date().toISOString().substring(0, 7); }
+
+function updateClock() {
+  const txt = new Date().toLocaleString('id-ID', {
+    weekday:'short', day:'numeric', month:'short',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+  const el  = document.getElementById('tclock');
+  const elP = document.getElementById('tclock-publik');
+  if (el)  el.textContent  = txt;
+  if (elP) elP.textContent = txt;
+}
+
+// ===== AUTH =====
+async function doLogin() {
+  const u = document.getElementById('lu').value.trim();
+  const p = document.getElementById('lp').value;
+  if (!u || !p) return showErr('lerr', 'Isi username dan password');
+  try {
+    const res  = await fetch(API + '/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:u, password:p})
+    });
+    const data = await res.json();
+    if (data.token) {
+      token    = data.token;
+      userData = {nama: data.nama, role: data.role};
+      localStorage.setItem('rfid_token', token);
+      localStorage.setItem('rfid_user',  JSON.stringify(userData));
+      document.getElementById('tuser').textContent = data.nama;
+      document.getElementById('trole').textContent = data.role;
+      document.getElementById('publik').style.display = 'none';
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display   = 'block';
+      initApp();
+    } else {
+      showErr('lerr', data.error || 'Login gagal');
+    }
+  } catch { showErr('lerr', 'Tidak bisa terhubung ke server'); }
+}
+
+function doLogout() {
+  token = ''; localStorage.removeItem('rfid_token'); localStorage.removeItem('rfid_user');
+  document.getElementById('app').style.display   = 'none';
+  document.getElementById('login').style.display = 'none';
+  tampilPublik();
+}
+
+// ===== NAVIGASI ANTAR MODE (publik / login / app) =====
+function tampilPublik() {
+  document.getElementById('login').style.display  = 'none';
+  document.getElementById('app').style.display    = 'none';
+  document.getElementById('publik').style.display = 'block';
+  loadPublikData();
+}
+
+function tampilLogin() {
+  document.getElementById('publik').style.display = 'none';
+  document.getElementById('app').style.display     = 'none';
+  document.getElementById('login').style.display   = 'flex';
+  document.getElementById('lu').focus();
+}
+
+async function loadPublikData() {
+  try {
+    const res  = await fetch(API + '/publik');
+    const data = await res.json();
+    const s = data.stats || {};
+
+    document.getElementById('p-hadir').textContent      = s.hadir || 0;
+    document.getElementById('p-terlambat').textContent  = s.terlambat || 0;
+    document.getElementById('p-alpha').textContent      = s.alpha || 0;
+    document.getElementById('p-pulang').textContent     = s.sudah_pulang || 0;
+    document.getElementById('p-tanggal').textContent    = new Date(data.tanggal).toLocaleDateString('id-ID', {
+      weekday:'long', day:'numeric', month:'long', year:'numeric'
+    });
+
+    const tbody = document.getElementById('p-perkelas-tbody');
+    const perKelas = data.perKelas || [];
+    if (!perKelas.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="empty">Belum ada data</td></tr>';
+    } else {
+      tbody.innerHTML = perKelas.map(k => `
+        <tr>
+          <td><b>${k.kelas}</b></td>
+          <td>${k.total_siswa}</td>
+          <td style="color:var(--green);font-weight:600">${k.hadir||0}</td>
+          <td style="color:var(--amber);font-weight:600">${k.terlambat||0}</td>
+          <td style="color:var(--red);font-weight:600">${k.alpha||0}</td>
+        </tr>`).join('');
+    }
+  } catch {
+    document.getElementById('p-perkelas-tbody').innerHTML = '<tr><td colspan="5" class="empty">Gagal memuat data</td></tr>';
+  }
+}
+
+// ===== API =====
+async function api(path, method='GET', body=null) {
+  token = localStorage.getItem('rfid_token') || token;
+  const opts = { method, headers:{'Content-Type':'application/json','Authorization':'Bearer '+token} };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  if (res.status === 401) { doLogout(); return null; }
+  return res.json();
+}
+
+// ===== INIT =====
+async function initApp() {
+  document.getElementById('tuser').textContent = userData.nama || '';
+  document.getElementById('trole').textContent = userData.role || '';
+  // Set ikon tema sesuai preferensi tersimpan
+  const btn = document.getElementById('btn-theme');
+  if (btn) btn.textContent = document.body.classList.contains('light') ? '🌑' : '🌙';
+
+  await loadKelas();
+  loadDashboard();
+  loadIzin();
+}
+
+async function loadKelas() {
+  siswaList = await api('/siswa') || [];
+  const kelas = [...new Set(siswaList.map(s => s.kelas))].sort();
+  ['f-kls','r-kls','fs-kls'].forEach(id => {
+    const sel = document.getElementById(id);
+    while (sel.options.length > 1) sel.remove(1);
+    kelas.forEach(k => { const o = document.createElement('option'); o.value=k; o.textContent=k; sel.appendChild(o); });
+  });
+  renderSiswa(siswaList);
+}
+
+// ===== TABS =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(e => e.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'izin')    { loadIzin(); }
+  if (name === 'sesi')    { loadSesi(); }
+  if (name === 'siswa')   { loadSiswa(); }
+  if (name === 'absensi') { loadAbsensi(); }
+  if (name === 'rekap')   { setRekapMode(rekapMode); }
+  if (name === 'perpus')  { loadPerpus(); }
+  if (name === 'import')  { muatSiswaRfid(); }
+}
+
+// ===== PERPUSTAKAAN =====
+let perpusTapIdAktif = null;
+
+async function loadPerpus() {
+  const data = await api('/perpus');
+
+  // Daftar tap menunggu diisi judul
+  const elPending = document.getElementById('perpus-pending-list');
+  const pending = data?.pending || [];
+  if (!pending.length) {
+    elPending.innerHTML = '<p class="empty">Tidak ada yang menunggu</p>';
+  } else {
+    elPending.innerHTML = pending.map(p => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+        <div>
+          <div style="font-weight:600">${p.nama}</div>
+          <div style="font-size:12px;color:var(--muted)">${p.kelas} · ${p.nis} · tap ${p.waktu_tap.split(' ')[1]||''}</div>
+        </div>
+        <button class="btn btn-g" style="padding:6px 12px;font-size:12px" onclick="bukaModalPerpus(${p.tap_id}, '${p.nama.replace(/'/g,"")}')">Isi Judul</button>
+      </div>`).join('');
+  }
+
+  // Daftar sedang dipinjam
+  const tbody = document.getElementById('perpus-dipinjam-tbody');
+  const dipinjam = data?.dipinjam || [];
+  if (!dipinjam.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Tidak ada buku dipinjam</td></tr>';
+  } else {
+    tbody.innerHTML = dipinjam.map(d => `
+      <tr>
+        <td class="mono">${d.nis}</td><td>${d.nama}</td><td>${d.judul_buku}</td>
+        <td class="mono">${d.tanggal_pinjam}</td>
+        <td><button class="btn btn-g" style="padding:4px 10px;font-size:11px" onclick="kembalikanBuku(${d.id})">Kembali</button></td>
+      </tr>`).join('');
+  }
+
+  // Riwayat
+  const riwayat = await api('/perpus?riwayat=1');
+  const tbR = document.getElementById('perpus-riwayat-tbody');
+  const rData = riwayat?.data || [];
+  if (!rData.length) {
+    tbR.innerHTML = '<tr><td colspan="6" class="empty">Belum ada riwayat</td></tr>';
+  } else {
+    tbR.innerHTML = rData.map(r => `
+      <tr>
+        <td class="mono">${r.nis}</td><td>${r.nama}</td><td>${r.judul_buku}</td>
+        <td class="mono">${r.tanggal_pinjam}</td><td class="mono">${r.tanggal_kembali}</td>
+        <td style="font-size:12px;color:var(--muted)">${r.dicatat_oleh_nama}</td>
+      </tr>`).join('');
+  }
+}
+
+function bukaModalPerpus(tapId, nama) {
+  perpusTapIdAktif = tapId;
+  document.getElementById('perpus-modal-nama').textContent = `Siswa: ${nama}`;
+  document.getElementById('perpus-modal-judul').value = '';
+  document.getElementById('perpus-modal').style.display = 'flex';
+}
+
+function tutupModalPerpus() {
+  document.getElementById('perpus-modal').style.display = 'none';
+  perpusTapIdAktif = null;
+}
+
+async function simpanPeminjaman() {
+  const judul = document.getElementById('perpus-modal-judul').value.trim();
+  if (!judul) return alert('Isi judul buku dulu');
+  if (!perpusTapIdAktif) return;
+
+  const res = await api('/perpus', 'POST', { tap_id: perpusTapIdAktif, judul_buku: judul });
+  if (res?.success) {
+    tutupModalPerpus();
+    loadPerpus();
+  } else {
+    alert(res?.error || 'Gagal menyimpan');
+  }
+}
+
+async function kembalikanBuku(id) {
+  if (!confirm('Tandai buku ini sudah dikembalikan?')) return;
+  const res = await api('/perpus?kembali=1', 'POST', { id });
+  if (res?.success) { loadPerpus(); } else { alert(res?.error || 'Gagal'); }
+}
+
+
+async function loadSesi() {
+  // Muat daftar device untuk checkbox
+  const devData = await api('/sesi?devices=1');
+  const devList = devData?.devices || [];
+  const devBox  = document.getElementById('sesi-device-list');
+
+  if (!devList.length) {
+    devBox.innerHTML = '<p class="empty" style="margin:0">Belum ada device yang pernah tap. Tap kartu dulu di alat untuk mendaftarkannya.</p>';
+  } else {
+    devBox.innerHTML = devList.map(d => `
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer">
+        <input type="checkbox" value="${d}" class="sesi-dev-cb">
+        <span class="mono">${d}</span>
+      </label>`).join('');
+  }
+
+  // Muat daftar sesi (aktif + riwayat)
+  const data = await api('/sesi');
+  const list = data?.data || [];
+
+  const aktif   = list.filter(s => s.status === 'aktif');
+  const riwayat = list;
+
+  // Sesi aktif
+  const elAktif = document.getElementById('sesi-aktif-list');
+  if (!aktif.length) {
+    elAktif.innerHTML = '<p class="empty">Tidak ada sesi aktif</p>';
+  } else {
+    elAktif.innerHTML = aktif.map(s => `
+      <div style="padding:12px;border:1px solid var(--green);border-radius:8px;margin-bottom:8px;background:var(--green-d)">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <div style="font-weight:600">${s.nama_sesi}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">
+              Device: ${s.devices.join(', ')}<br>
+              Dibuka ${s.jam_buka} oleh ${s.dibuka_oleh_nama} · ${s.total_tap} siswa tap
+            </div>
+          </div>
+          <button class="btn btn-r" style="padding:6px 12px;font-size:12px" onclick="tutupSesi(${s.id})">Tutup</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // Riwayat sesi
+  const tbody = document.getElementById('sesi-riwayat-tbody');
+  if (!riwayat.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Belum ada sesi hari ini</td></tr>';
+  } else {
+    tbody.innerHTML = riwayat.map(s => `
+      <tr style="cursor:pointer" onclick="lihatDetailSesi(${s.id})">
+        <td>${s.nama_sesi}</td>
+        <td class="mono" style="font-size:12px">${s.devices.join(', ')}</td>
+        <td class="mono">${s.jam_buka}</td>
+        <td class="mono">${s.jam_tutup || '-'}</td>
+        <td>${s.total_tap}</td>
+        <td><span class="badge ${s.status==='aktif'?'badge-g':'badge-m'}">${s.status==='aktif'?'Aktif':'Selesai'}</span></td>
+        <td>${s.status==='aktif' ? `<button class="btn btn-r" style="padding:4px 10px;font-size:11px" onclick="event.stopPropagation();tutupSesi(${s.id})">Tutup</button>` : ''}</td>
+      </tr>`).join('');
+  }
+}
+
+async function bukaSesi() {
+  const nama = document.getElementById('sesi-nama').value.trim();
+  const devices = Array.from(document.querySelectorAll('.sesi-dev-cb:checked')).map(cb => cb.value);
+
+  if (!nama) return alert('Isi nama sesi dulu');
+  if (!devices.length) return alert('Pilih minimal 1 device');
+
+  const res = await api('/sesi', 'POST', { nama_sesi: nama, devices });
+  if (res?.success) {
+    alert(res.pesan);
+    document.getElementById('sesi-nama').value = '';
+    loadSesi();
+  } else {
+    alert(res?.error || 'Gagal membuka sesi');
+  }
+}
+
+async function tutupSesi(id) {
+  if (!confirm('Tutup sesi ini? Device akan kembali netral untuk absen masuk/pulang.')) return;
+  const res = await api('/sesi?tutup=1', 'POST', { id });
+  if (res?.success) { loadSesi(); } else { alert(res?.error || 'Gagal menutup sesi'); }
+}
+
+async function lihatDetailSesi(id) {
+  const data = await api(`/sesi?id=${id}`);
+  if (!data) return;
+
+  document.getElementById('sesi-detail-card').style.display = 'block';
+  document.getElementById('sesi-detail-title').textContent = `Detail: ${data.nama_sesi} (${data.total_tap} siswa)`;
+
+  const tbody = document.getElementById('sesi-detail-tbody');
+  if (!data.tap_list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Belum ada siswa yang tap</td></tr>';
+  } else {
+    tbody.innerHTML = data.tap_list.map(t => `
+      <tr>
+        <td class="mono">${t.nis}</td><td>${t.nama}</td><td>${t.kelas}</td>
+        <td class="mono" style="font-size:12px">${t.device_id}</td>
+        <td class="mono">${t.waktu_tap}</td>
+      </tr>`).join('');
+  }
+  document.getElementById('sesi-detail-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+
+async function loadDashboard() {
+  const data = await api('/dashboard');
+  if (!data) return;
+  const s = data.stats || {};
+  document.getElementById('s-hadir').textContent   = +s.hadir||0;
+  document.getElementById('s-telat').textContent   = +s.terlambat||0;
+  document.getElementById('s-alpha').textContent   = +s.alpha||0;
+  document.getElementById('s-pulang').textContent  = +s.sudah_pulang||0;
+  document.getElementById('s-sekolah').textContent = +s.masih_di_sekolah||0;
+
+  // Scan terakhir
+  const tbody = document.getElementById('scan-tbody');
+  if (data.scanTerakhir?.length) {
+    tbody.innerHTML = data.scanTerakhir.map(r => `
+      <tr>
+        <td>${r.nama}</td><td>${r.kelas}</td>
+        <td class="mono">${r.waktu_masuk||'-'}</td>
+        <td class="mono">${r.waktu_pulang||'-'}</td>
+        <td><span class="badge ${r.status_masuk||'alpha'}">${r.status_masuk||'alpha'}</span></td>
+      </tr>`).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Belum ada tap hari ini</td></tr>';
+  }
+
+  // Bar per kelas
+  const bars = document.getElementById('kelas-bars');
+  if (data.perKelas?.length) {
+    bars.innerHTML = data.perKelas.map(k => {
+      const pct = k.total_siswa ? Math.round(((+k.hadir||0)+(+k.terlambat||0))/k.total_siswa*100) : 0;
+      const col = pct>=80 ? 'var(--green)' : pct>=60 ? 'var(--amber)' : 'var(--red)';
+      return `<div class="brow">
+        <div class="blbl">${k.kelas}</div>
+        <div class="btrk"><div class="bfil" style="width:${pct}%;background:${col}"></div></div>
+        <div class="bpct">${pct}%</div>
+      </div>`;
+    }).join('');
+  } else bars.innerHTML = '<p class="empty">Belum ada data</p>';
+
+  // Izin aktif di dashboard
+  const izinDash = document.getElementById('izin-aktif-dash');
+  if (data.izinAktif?.length) {
+    izinDash.innerHTML = data.izinAktif.map(i => `
+      <div class="izin-card">
+        <div class="izin-info">
+          <div class="izin-name">${i.nama} <span style="color:var(--muted);font-weight:400">— ${i.kelas}</span></div>
+          <div class="izin-detail">${i.alasan||'Tanpa keterangan'} · 
+            ${i.status==='keluar'?'Keluar '+i.jam_keluar:'Menunggu tap keluar'}
+          </div>
+        </div>
+        <span class="badge ${i.status}">${i.status}</span>
+      </div>`).join('');
+  } else {
+    izinDash.innerHTML = '<p class="empty">Tidak ada siswa di luar</p>';
+  }
+}
+
+// ===== IZIN KELUAR =====
+async function loadIzin() {
+  const data = await api('/izin_keluar?tanggal='+today());
+  if (!data) return;
+
+  const aktif = (data.data||[]).filter(i => ['menunggu','keluar'].includes(i.status));
+  const hist  = data.data || [];
+
+  // List aktif
+  const listEl = document.getElementById('izin-list');
+  if (aktif.length) {
+    listEl.innerHTML = '<div class="izin-wrap">' + aktif.map(i => `
+      <div class="izin-card">
+        <div class="izin-info">
+          <div class="izin-name">${i.nama} — ${i.kelas}</div>
+          <div class="izin-detail">
+            ${i.alasan||'Tanpa keterangan'} ·
+            ${i.status==='keluar' ? 'Keluar: <b>'+i.jam_keluar+'</b>' : 'Menunggu tap keluar'}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="badge ${i.status}">${i.status}</span>
+          <button class="btn-batalkan" onclick="batalkanIzin(${i.id})">Batalkan</button>
+        </div>
+      </div>`).join('') + '</div>';
+  } else {
+    listEl.innerHTML = '<p class="empty">Tidak ada izin aktif</p>';
+  }
+
+  // Riwayat
+  const histEl = document.getElementById('izin-history');
+  if (hist.length) {
+    histEl.innerHTML = hist.map(i => `
+      <tr>
+        <td>${i.nama}</td><td>${i.kelas}</td>
+        <td class="mono">${i.jam_keluar||'-'}</td>
+        <td class="mono">${i.jam_kembali||'-'}</td>
+        <td><span class="badge ${i.status}">${i.status}</span></td>
+      </tr>`).join('');
+  } else {
+    histEl.innerHTML = '<tr><td colspan="5" class="empty">Belum ada riwayat</td></tr>';
+  }
+}
+
+// Cari siswa untuk izin
+function cariSiswa() {
+  const q = document.getElementById('iz-cari').value.toLowerCase().trim();
+  const el = document.getElementById('iz-hasil');
+  izinSiswaId = null;
+  if (!q) { el.innerHTML = ''; return; }
+  const hasil = siswaList.filter(s =>
+    s.nama.toLowerCase().includes(q) || s.nis.includes(q)
+  ).slice(0, 5);
+  if (!hasil.length) { el.innerHTML = '<p style="font-size:12px;color:var(--muted)">Tidak ditemukan</p>'; return; }
+  el.innerHTML = hasil.map(s => `
+    <div onclick="pilihSiswa(${s.id},'${s.nama}','${s.kelas}')"
+         style="padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;margin-bottom:4px;font-size:13px;transition:border-color .2s"
+         onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+      <b>${s.nama}</b> <span style="color:var(--muted)">— ${s.kelas} · ${s.nis}</span>
+    </div>`).join('');
+}
+
+function pilihSiswa(id, nama, kelas) {
+  izinSiswaId = id;
+  document.getElementById('iz-cari').value = nama + ' (' + kelas + ')';
+  document.getElementById('iz-hasil').innerHTML = '';
+}
+
+async function bukaIzin() {
+  if (!izinSiswaId) return showErrMsg('iz-msg-err', 'Pilih siswa terlebih dahulu');
+  const alasan = document.getElementById('iz-alasan').value.trim();
+  const data = await api('/izin_keluar', 'POST', {siswa_id: izinSiswaId, alasan});
+  if (!data) return;
+  if (data.success) {
+    showOkMsg('iz-msg-ok', `✓ Izin dibuka untuk ${data.nama}. Siswa bisa tap kartu di gerbang.`);
+    document.getElementById('iz-cari').value = '';
+    document.getElementById('iz-alasan').value = '';
+    document.getElementById('iz-hasil').innerHTML = '';
+    izinSiswaId = null;
+    loadIzin();
+    loadDashboard();
+  } else {
+    showErrMsg('iz-msg-err', data.error || 'Gagal membuka izin');
+  }
+}
+
+async function batalkanIzin(id) {
+  if (!confirm('Batalkan izin keluar ini?')) return;
+  const data = await api('/izin_keluar?batalkan=1', 'POST', {id});
+  if (data?.success) { loadIzin(); loadDashboard(); }
+}
+
+// ===== LOG ABSENSI =====
+async function loadAbsensi() {
+  const data = await api(`/absensi?tanggal=${document.getElementById('f-tgl').value}&kelas=${document.getElementById('f-kls').value}`);
+  const tbody = document.getElementById('abs-tbody');
+  if (!data?.data?.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Tidak ada data</td></tr>'; return;
+  }
+  tbody.innerHTML = data.data.map(r => `
+    <tr>
+      <td class="mono">${r.nis||'-'}</td>
+      <td>${r.nama}</td><td>${r.kelas}</td>
+      <td class="mono">${r.waktu_masuk||'-'}</td>
+      <td>${r.waktu_masuk ? `<span class="badge ${r.status_masuk}">${r.status_masuk}</span>` : '<span class="badge alpha">alpha</span>'}</td>
+      <td class="mono">${r.waktu_pulang||'-'}</td>
+      <td>${r.waktu_pulang ? `<span class="badge pulang">${r.status_pulang}</span>` : (r.waktu_masuk ? '<span class="badge terlambat">belum pulang</span>' : '-')}</td>
+    </tr>`).join('');
+}
+
+// ===== REKAP (Harian / Mingguan / Bulanan) =====
+let rekapMode = 'harian';
+let rekapData = null; // simpan response terakhir (object dari API)
+
+function thisWeek() {
+  const d = new Date();
+  const onejan = new Date(d.getFullYear(), 0, 1);
+  const week = Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+  return `${d.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+
+function setRekapMode(mode) {
+  rekapMode = mode;
+
+  // Toggle tampilan tombol mode
+  ['harian','mingguan','bulanan'].forEach(m => {
+    const btn = document.getElementById('rmode-' + m);
+    if (m === mode) {
+      btn.style.background = 'var(--accent)'; btn.style.color = '#fff'; btn.style.border = 'none';
+    } else {
+      btn.style.background = 'var(--surface2)'; btn.style.color = 'var(--muted)'; btn.style.border = '1px solid var(--border)';
+    }
+  });
+
+  // Toggle input yang relevan
+  document.getElementById('r-tgl').style.display  = mode === 'harian'   ? 'block' : 'none';
+  document.getElementById('r-mggu').style.display  = mode === 'mingguan' ? 'block' : 'none';
+  document.getElementById('r-bln').style.display   = mode === 'bulanan'  ? 'block' : 'none';
+
+  // Reset tabel
+  rekapData = null;
+  document.getElementById('btn-export-rekap').style.display = 'none';
+  renderRekapHeader(mode);
+  document.getElementById('rekap-tbody').innerHTML =
+    `<tr><td colspan="${mode==='mingguan'?20:6}" class="empty">Pilih kelas dan periode, lalu klik Tampilkan</td></tr>`;
+}
+
+function renderRekapHeader(mode) {
+  const thead = document.getElementById('rekap-thead');
+  if (mode === 'bulanan') {
+    thead.innerHTML = '<tr><th>NIS</th><th>Nama</th><th>Hadir</th><th>Terlambat</th><th>Alpha</th><th>Total Hadir</th><th>Total Pulang</th></tr>';
+  } else if (mode === 'harian') {
+    thead.innerHTML = '<tr><th>NIS</th><th>Nama</th><th>Status Masuk</th><th>Jam Masuk</th><th>Status Pulang</th><th>Jam Pulang</th></tr>';
+  } else {
+    // mingguan: header dibangun dinamis saat data masuk (per-hari kolom)
+    thead.innerHTML = '<tr><th>NIS</th><th>Nama</th><th colspan="100">Pilih kelas & minggu lalu klik Tampilkan</th></tr>';
+  }
+}
+
+function rekapQueryParams() {
+  const kelas = document.getElementById('r-kls').value;
+  if (!kelas) { alert('Pilih kelas terlebih dahulu'); return null; }
+
+  const params = new URLSearchParams({ kelas, mode: rekapMode });
+
+  if (rekapMode === 'harian') {
+    params.set('tanggal', document.getElementById('r-tgl').value || today());
+  } else if (rekapMode === 'mingguan') {
+    params.set('minggu', document.getElementById('r-mggu').value || thisWeek());
+  } else {
+    params.set('bulan', document.getElementById('r-bln').value || thisMonth());
+  }
+  return params;
+}
+
+async function loadRekap() {
+  const params = rekapQueryParams();
+  if (!params) return;
+
+  const tbody = document.getElementById('rekap-tbody');
+  const btnExport = document.getElementById('btn-export-rekap');
+  tbody.innerHTML = `<tr><td colspan="20" class="empty">Memuat...</td></tr>`;
+
+  const data = await api(`/rekap?${params.toString()}`);
+
+  if (!data || !data.data || !data.data.length) {
+    tbody.innerHTML = '<tr><td colspan="20" class="empty">Tidak ada data</td></tr>';
+    btnExport.style.display = 'none';
+    rekapData = null;
+    return;
+  }
+
+  rekapData = data;
+  btnExport.style.display = 'inline-block';
+
+  if (rekapMode === 'harian')   renderRekapHarian(data);
+  if (rekapMode === 'mingguan') renderRekapMingguan(data);
+  if (rekapMode === 'bulanan')  renderRekapBulanan(data);
+}
+
+function renderRekapHarian(data) {
+  renderRekapHeader('harian');
+  const tbody = document.getElementById('rekap-tbody');
+  tbody.innerHTML = data.data.map(r => `
+    <tr>
+      <td class="mono">${r.nis}</td><td>${r.nama}</td>
+      <td>${r.waktu_masuk ? `<span class="badge ${r.status_masuk}">${r.status_masuk}</span>` : '<span class="badge alpha">alpha</span>'}</td>
+      <td class="mono">${r.waktu_masuk||'-'}</td>
+      <td>${r.waktu_pulang ? `<span class="badge pulang">${r.status_pulang}</span>` : '-'}</td>
+      <td class="mono">${r.waktu_pulang||'-'}</td>
+    </tr>`).join('');
+}
+
+function renderRekapMingguan(data) {
+  const thead = document.getElementById('rekap-thead');
+  const namaHari = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  let headHtml = '<tr><th>NIS</th><th>Nama</th>';
+  data.hari.forEach((tgl, i) => {
+    const label = namaHari[i] + ' ' + tgl.slice(8,10) + '/' + tgl.slice(5,7);
+    headHtml += `<th>${label}<br><span style="font-size:9px">Masuk / Pulang</span></th>`;
+  });
+  headHtml += '</tr>';
+  thead.innerHTML = headHtml;
+
+  const tbody = document.getElementById('rekap-tbody');
+  tbody.innerHTML = data.data.map(r => {
+    let cols = `<td class="mono">${r.nis}</td><td>${r.nama}</td>`;
+    data.hari.forEach(tgl => {
+      const h = r.hari[tgl] || {};
+      const masuk  = h.waktu_masuk  ? h.waktu_masuk.slice(0,5)  : '-';
+      const pulang = h.waktu_pulang ? h.waktu_pulang.slice(0,5) : '-';
+      const statusColor = h.status_masuk === 'hadir' ? 'var(--green)' : h.status_masuk === 'terlambat' ? 'var(--amber)' : 'var(--red)';
+      cols += `<td class="mono" style="font-size:11px"><span style="color:${statusColor}">${masuk}</span> / ${pulang}</td>`;
+    });
+    return `<tr>${cols}</tr>`;
+  }).join('');
+}
+
+function renderRekapBulanan(data) {
+  renderRekapHeader('bulanan');
+  const tbody = document.getElementById('rekap-tbody');
+  tbody.innerHTML = data.data.map(r => `
+    <tr>
+      <td class="mono">${r.nis}</td><td>${r.nama}</td>
+      <td style="color:var(--green);font-weight:600">${r.hadir||0}</td>
+      <td style="color:var(--amber);font-weight:600">${r.terlambat||0}</td>
+      <td style="color:var(--red);font-weight:600">${r.alpha||0}</td>
+      <td class="mono">${r.total_hadir||0}</td>
+      <td class="mono">${r.total_pulang||0}</td>
+    </tr>`).join('');
+}
+
+async function exportRekapCSV() {
+  const params = rekapQueryParams();
+  if (!params) return;
+  params.set('format', 'csv');
+
+  try {
+    token = localStorage.getItem('rfid_token') || token;
+    const res = await fetch(`${API}/rekap?${params.toString()}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) { doLogout(); return; }
+    if (!res.ok) { alert('Gagal mengambil file export'); return; }
+
+    const blob = await res.blob();
+    // Ambil nama file dari header Content-Disposition kalau ada
+    const cd = res.headers.get('Content-Disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/);
+    const filename = match ? match[1] : `rekap_${rekapMode}.csv`;
+
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href    = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Tidak bisa terhubung ke server untuk export');
+  }
+}
+
+// ===== DATA SISWA =====
+async function loadSiswa() {
+  const kls  = document.getElementById('fs-kls').value;
+  const data = await api('/siswa' + (kls ? '?kelas='+kls : ''));
+  if (data) renderSiswa(data);
+}
+
+function renderSiswa(data) {
+  const tbody = document.getElementById('siswa-tbody');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty">Belum ada data</td></tr>'; return; }
+  tbody.innerHTML = data.map(s => `
+    <tr>
+      <td class="mono">${s.nis}</td><td>${s.nama}</td><td>${s.kelas}</td>
+      <td class="mono" style="font-size:11px">${s.uid_rfid||'<span style="color:var(--muted)">—</span>'}</td>
+    </tr>`).join('');
+}
+
+async function simpanSiswa() {
+  const body = {
+    nis: document.getElementById('si-nis').value.trim(),
+    nama: document.getElementById('si-nama').value.trim(),
+    kelas: document.getElementById('si-kls').value,
+    jk: document.getElementById('si-jk').value,
+    hp_ortu: document.getElementById('si-hp').value.trim(),
+    uid_rfid: document.getElementById('si-uid').value.trim()
+  };
+  if (!body.nis || !body.nama) return showErrMsg('si-err', 'NIS dan nama wajib diisi');
+  const data = await api('/siswa', 'POST', body);
+  if (data?.success) {
+    showOkMsg('si-ok', '✓ Siswa berhasil disimpan');
+    ['si-nis','si-nama','si-hp','si-uid'].forEach(id => document.getElementById(id).value = '');
+    await loadKelas(); loadSiswa();
+  } else { showErrMsg('si-err', data?.error || 'Gagal menyimpan'); }
+}
+
+// ===== HELPERS =====
+function showErr(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display='block'; }
+function showOkMsg(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',4000); }
+function showErrMsg(id, msg) { const el=document.getElementById(id); el.textContent=msg; el.style.display='block'; setTimeout(()=>el.style.display='none',4000); }
+
+// ===== IMPORT DATA =====
+// Muat SheetJS untuk baca Excel
+(function(){
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+  document.head.appendChild(s);
+})();
+
+const IMP_FIELDS = {
+  nis:      { label: 'NIS *',             wajib: true  },
+  nama:     { label: 'Nama Lengkap *',    wajib: true  },
+  kelas:    { label: 'Kelas *',           wajib: true  },
+  jk:       { label: 'Jenis Kelamin (L/P)', wajib: false },
+  hp_ortu:  { label: 'HP Orang Tua',     wajib: false },
+  uid_rfid: { label: 'UID RFID',         wajib: false }
+};
+
+let impRows = [], impHeaders = [], impColMap = {};
+
+function downloadTemplate() {
+  if (typeof XLSX === 'undefined') return alert('Library Excel belum siap, tunggu sebentar lalu coba lagi.');
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['nis','nama','kelas','jk','hp_ortu','uid_rfid'],
+    ['2024001','Budi Santoso','X-A','L','08123456789',''],
+    ['2024002','Siti Rahayu','X-B','P','08234567890','']
+  ]);
+  ws['!cols'] = [{wch:12},{wch:25},{wch:8},{wch:6},{wch:16},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'DataSiswa');
+  XLSX.writeFile(wb, 'template_data_siswa.xlsx');
+}
+
+function handleImpDrop(e) {
+  e.preventDefault();
+  document.getElementById('imp-dropzone').style.borderColor = 'var(--border)';
+  const file = e.dataTransfer.files[0];
+  if (file) handleImpFile(file);
+}
+
+function handleImpFile(file) {
+  if (!file) return;
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      let json;
+      if (isCsv) {
+        const text = e.target.result;
+        const lines = text.trim().split(/\r?\n/);
+        json = lines.map(l => l.split(',').map(c => c.replace(/^"|"$/g,'').trim()));
+      } else {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        json = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
+      }
+      if (json.length < 2) { showImpErr('File kosong atau tidak ada data siswa'); return; }
+      impHeaders = json[0].map(h => String(h).trim().toLowerCase());
+      impRows = json.slice(1).filter(r => r.some(c => String(c).trim() !== ''));
+      impAutoMap();
+      renderImpColMap();
+      renderImpPreview();
+      document.getElementById('imp-map-card').style.display     = 'block';
+      document.getElementById('imp-preview-card').style.display = 'block';
+      document.getElementById('imp-action-card').style.display  = 'flex';
+      document.getElementById('imp-dropzone').style.background  = 'var(--green-d)';
+      document.getElementById('imp-dropzone').querySelector('p').textContent = '✓ File dimuat: ' + file.name;
+    } catch(err) { showImpErr('Gagal membaca file: ' + err.message); }
+  };
+  if (isCsv) reader.readAsText(file); else reader.readAsArrayBuffer(file);
+}
+
+function impAutoMap() {
+  impColMap = {};
+  const alias = {
+    nis:      ['nis','no induk','nisn','nomor induk'],
+    nama:     ['nama','name','nama lengkap','nama siswa'],
+    kelas:    ['kelas','class','tingkat'],
+    jk:       ['jk','jenis kelamin','gender','kelamin'],
+    hp_ortu:  ['hp','hp_ortu','no hp','telepon','hp orang tua','nomor hp'],
+    uid_rfid: ['uid','uid_rfid','rfid','kartu','no kartu','uid kartu']
+  };
+  Object.entries(alias).forEach(([field, words]) => {
+    const idx = impHeaders.findIndex(h => words.some(w => h.includes(w)));
+    if (idx >= 0) impColMap[field] = idx;
+  });
+}
+
+function renderImpColMap() {
+  const el = document.getElementById('imp-col-map');
+  el.innerHTML = Object.entries(IMP_FIELDS).map(([field, cfg]) => `
+    <div>
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:3px">${cfg.label}</label>
+      <select style="width:100%;padding:6px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit"
+        onchange="impColMap['${field}']=this.value===''?undefined:parseInt(this.value);renderImpPreview()">
+        <option value="">— tidak ada —</option>
+        ${impHeaders.map((h,i) => `<option value="${i}" ${impColMap[field]===i?'selected':''}>${h}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+
+function renderImpPreview() {
+  const fields = Object.keys(IMP_FIELDS);
+  const rows   = impRows.slice(0, 5);
+  document.getElementById('imp-count').textContent = impRows.length + ' baris data';
+  document.getElementById('imp-preview-tbl').innerHTML = `
+    <thead style="position:sticky;top:0">
+      <tr>${fields.map(f => `<th style="padding:5px 8px;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface);white-space:nowrap">${IMP_FIELDS[f].label.replace(' *','')}</th>`).join('')}</tr>
+    </thead>
+    <tbody>
+      ${rows.map(r => `<tr>${fields.map(f => {
+        const v = impColMap[f] !== undefined ? String(r[impColMap[f]] || '') : '';
+        const kosong = !v && IMP_FIELDS[f].wajib;
+        return `<td style="padding:5px 8px;border-bottom:1px solid var(--border);font-size:12px;color:${kosong?'var(--red)':'var(--text)'}${f==='uid_rfid'?';font-family:JetBrains Mono,monospace':''}">${v || (kosong ? '⚠ kosong' : '—')}</td>`;
+      }).join('')}</tr>`).join('')}
+    </tbody>`;
+}
+
+async function doImport() {
+  const missing = Object.entries(IMP_FIELDS).filter(([f,c]) => c.wajib && impColMap[f] === undefined).map(([,c]) => c.label.replace(' *',''));
+  if (missing.length) { showImpErr('Kolom wajib belum dipilih: ' + missing.join(', ')); return; }
+
+  const progWrap = document.getElementById('imp-prog-wrap');
+  const fill     = document.getElementById('imp-prog-fill');
+  const lbl      = document.getElementById('imp-prog-lbl');
+  progWrap.style.display = 'block';
+
+  let ok = 0, gagal = 0;
+  for (let i = 0; i < impRows.length; i++) {
+    const r    = impRows[i];
+    const body = {};
+    Object.keys(IMP_FIELDS).forEach(f => {
+      if (impColMap[f] !== undefined) body[f] = String(r[impColMap[f]] || '').trim();
+    });
+    if (!body.nis || !body.nama || !body.kelas) { gagal++; continue; }
+    try {
+      const res = await api('/siswa', 'POST', body);
+      if (res?.success) ok++; else gagal++;
+    } catch { gagal++; }
+    const pct = Math.round((i+1) / impRows.length * 100);
+    fill.style.width = pct + '%';
+    lbl.textContent  = `Memproses ${i+1} dari ${impRows.length}... (${pct}%)`;
+  }
+
+  progWrap.style.display = 'none';
+  fill.style.width = '0%';
+
+  if (ok > 0) {
+    showOkMsg('imp-msg-ok', `✓ Berhasil import ${ok} siswa!${gagal ? ' — '+gagal+' baris dilewati (data tidak lengkap).' : ''}`);
+    await loadKelas();
+    await muatSiswaRfid();
+  } else {
+    showImpErr(`Gagal import semua data. Periksa kolom wajib (NIS, Nama, Kelas) sudah terisi.`);
+  }
+}
+
+function resetImport() {
+  impRows = []; impHeaders = []; impColMap = {};
+  document.getElementById('imp-map-card').style.display     = 'none';
+  document.getElementById('imp-preview-card').style.display = 'none';
+  document.getElementById('imp-action-card').style.display  = 'none';
+  document.getElementById('imp-file').value = '';
+  const dz = document.getElementById('imp-dropzone');
+  dz.style.background = 'var(--surface2)';
+  dz.querySelector('p').textContent = 'Klik di sini atau seret file ke area ini';
+  hideImpMsg();
+}
+
+function showImpErr(msg) { showErrMsg('imp-msg-err', msg); }
+function hideImpMsg()    { ['imp-msg-ok','imp-msg-err'].forEach(id => document.getElementById(id).style.display='none'); }
+
+// ===== SCAN RFID + WEB SERIAL =====
+let rfidSiswaAll = [], rfidSelected = null, rfidCaptured = null, rfidBuf = '', rfidTimeout = null;
+let serialPort = null, serialReader = null, serialActive = false;
+
+// --- Hubungkan ESP32 via Web Serial ---
+async function serialHubungkan() {
+  if (!('serial' in navigator)) {
+    showErrMsg('rfid-msg-err', '❌ Browser tidak mendukung Web Serial. Gunakan Chrome atau Edge versi terbaru.');
+    return;
+  }
+  try {
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 115200 });
+    serialActive = true;
+    document.getElementById('btn-serial-connect').style.display    = 'none';
+    document.getElementById('btn-serial-disconnect').style.display = 'inline-block';
+    document.getElementById('serial-status-lbl').textContent       = '✅ ESP32 terhubung — tap kartu untuk baca UID';
+    document.getElementById('serial-status-lbl').style.color       = 'var(--green)';
+    document.getElementById('serial-log').style.display            = 'block';
+    document.getElementById('rfid-pulse').style.background         = 'var(--green)';
+    document.getElementById('rfid-pulse').style.animation          = 'pulse 1.5s ease-in-out infinite';
+    serialBaca();
+  } catch (e) {
+    if (e.name !== 'NotFoundError') {
+      showErrMsg('rfid-msg-err', '❌ Gagal terhubung: ' + e.message);
+    }
+  }
+}
+
+async function serialPutuskan() {
+  serialActive = false;
+  try { if (serialReader) { await serialReader.cancel(); serialReader = null; } } catch(e) {}
+  try { if (serialPort)   { await serialPort.close();   serialPort   = null; } } catch(e) {}
+  document.getElementById('btn-serial-connect').style.display    = 'inline-block';
+  document.getElementById('btn-serial-disconnect').style.display = 'none';
+  document.getElementById('serial-status-lbl').textContent       = '🔌 ESP32 belum terhubung';
+  document.getElementById('serial-status-lbl').style.color       = '';
+  document.getElementById('serial-log').style.display            = 'none';
+  document.getElementById('rfid-pulse').style.background         = 'var(--muted)';
+  document.getElementById('rfid-pulse').style.animation          = 'none';
+}
+
+async function serialBaca() {
+  const decoder = new TextDecoder();
+  let buffer    = '';
+  try {
+    while (serialPort && serialPort.readable && serialActive) {
+      serialReader = serialPort.readable.getReader();
+      try {
+        while (true) {
+          const { value, done } = await serialReader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop(); // simpan baris yang belum lengkap
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            serialLogTambah(trimmed);
+            // Format dari main.cpp: ">>> KARTU: A1:B2:C3:D4 | 07:30:15"
+            const match = trimmed.match(/>>>\s*KARTU:\s*([0-9A-Fa-f:]+)/i);
+            if (match) {
+              const uid = match[1].trim().toUpperCase();
+              serialUIDDiterima(uid);
+            }
+          }
+        }
+      } finally {
+        serialReader.releaseLock();
+        serialReader = null;
+      }
+    }
+  } catch(e) {
+    if (serialActive) showErrMsg('rfid-msg-err', '⚠️ Koneksi Serial terputus: ' + e.message);
+    serialPutuskan();
+  }
+}
+
+function serialLogTambah(teks) {
+  const el  = document.getElementById('serial-log');
+  const brs = document.createElement('div');
+  brs.textContent = teks;
+  el.appendChild(brs);
+  el.scrollTop = el.scrollHeight;
+  // Batasi 30 baris
+  while (el.children.length > 30) el.removeChild(el.firstChild);
+}
+
+function serialUIDDiterima(uid) {
+  if (!rfidSelected) {
+    serialLogTambah('⚠ Pilih siswa dulu sebelum tap kartu');
+    return;
+  }
+  setRfidCaptured(uid);
+}
+
+// --- Daftar siswa ---
+async function muatSiswaRfid() {
+  document.getElementById('rfid-siswa-list').innerHTML =
+    '<p style="font-size:13px;color:var(--muted);text-align:center;padding:.5rem">⏳ Memuat data siswa...</p>';
+  const data = await api('/siswa');
+  if (!data) return;
+
+  // Urutkan: kelas dulu (alfanumerik), lalu nama (alfanumerik)
+  rfidSiswaAll = data.slice().sort((a, b) => {
+    const k = a.kelas.localeCompare(b.kelas, undefined, {numeric:true, sensitivity:'base'});
+    if (k !== 0) return k;
+    return a.nama.localeCompare(b.nama, undefined, {numeric:true, sensitivity:'base'});
+  });
+
+  // Isi dropdown filter kelas dari kelas yang benar-benar ada
+  const kelasUnik = [...new Set(rfidSiswaAll.map(s => s.kelas))].sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+  const sel = document.getElementById('rfid-kelas-filter');
+  const kelasSekarang = sel.value;
+  sel.innerHTML = '<option value="">Semua Kelas</option>' + kelasUnik.map(k => `<option value="${k}">${k}</option>`).join('');
+  sel.value = kelasUnik.includes(kelasSekarang) ? kelasSekarang : '';
+
+  filterRfidSiswa();
+}
+
+function filterRfidSiswa() {
+  const q     = document.getElementById('rfid-cari').value.toLowerCase().trim();
+  const kelas = document.getElementById('rfid-kelas-filter').value;
+
+  let list = rfidSiswaAll;
+  if (kelas) list = list.filter(s => s.kelas === kelas);
+  if (q)     list = list.filter(s => s.nama.toLowerCase().includes(q) || s.nis.includes(q));
+
+  renderRfidList(list);
+}
+
+function renderRfidList(list) {
+  const el = document.getElementById('rfid-siswa-list');
+  if (!list.length) { el.innerHTML = '<p style="font-size:13px;color:var(--muted);text-align:center;padding:.5rem">Tidak ada siswa ditemukan</p>'; return; }
+  el.innerHTML = list.map(s => `
+    <div onclick="pilihSiswaRfid(${s.id})"
+      style="padding:7px 10px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border:1px solid ${String(rfidSelected)===String(s.id)?'var(--green)':'transparent'};background:${String(rfidSelected)===String(s.id)?'var(--green-d)':'transparent'};transition:all .15s"
+      onmouseover="if(${rfidSelected!==s.id}) this.style.background='var(--surface2)'"
+      onmouseout="if(${rfidSelected!==s.id}) this.style.background='transparent'">
+      <div>
+        <div style="font-size:13px;font-weight:600">${s.nama}</div>
+        <div style="font-size:11px;color:var(--muted)">${s.kelas} · ${s.nis}</div>
+      </div>
+      <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:${s.uid_rfid?'var(--green)':'var(--muted)'}">${s.uid_rfid || '— belum ada —'}</div>
+    </div>`).join('');
+}
+
+function pilihSiswaRfid(id) {
+  rfidSelected = id;
+  const s      = rfidSiswaAll.find(x => String(x.id) === String(id));
+  const display = document.getElementById('rfid-display');
+  // Kalau sudah ada UID tertangkap, jangan reset — langsung tampilkan tombol Simpan
+  if (rfidCaptured) {
+    display.style.color       = 'var(--green)';
+    display.style.fontSize    = '22px';
+    display.style.fontFamily  = 'var(--mono)';
+    display.style.letterSpacing = '2px';
+    display.textContent = rfidCaptured;
+    document.getElementById('rfid-btn-simpan').style.display = 'block';
+  } else {
+    rfidBuf = '';
+    display.style.color       = 'var(--amber)';
+    display.style.fontSize    = '13px';
+    display.style.fontFamily  = 'inherit';
+    display.style.letterSpacing = '0';
+    display.textContent = serialActive
+      ? '⏳ Tap kartu ke ESP32 untuk ' + (s ? s.nama : '') + '...'
+      : '⏳ Menunggu UID untuk ' + (s ? s.nama : '') + '...';
+    document.getElementById('rfid-btn-simpan').style.display = 'none';
+    document.getElementById('rfid-manual').value = '';
+  }
+  hideRfidMsg();
+  renderRfidList(rfidSiswaAll.filter(x => {
+    const q = document.getElementById('rfid-cari').value.toLowerCase();
+    return !q || x.nama.toLowerCase().includes(q) || x.nis.includes(q);
+  }));
+}
+
+function pakaiUIDManual() {
+  const v = document.getElementById('rfid-manual').value.trim().toUpperCase();
+  if (!v) return;
+  if (!rfidSelected) { showErrMsg('rfid-msg-err', 'Pilih siswa dulu dari daftar'); return; }
+  setRfidCaptured(v);
+}
+
+function setRfidCaptured(uid) {
+  rfidCaptured = uid;
+  const display = document.getElementById('rfid-display');
+  display.style.color        = 'var(--green)';
+  display.style.fontSize     = '22px';
+  display.style.fontFamily   = "'JetBrains Mono', monospace";
+  display.style.letterSpacing = '.12em';
+  display.textContent        = uid;
+  document.getElementById('rfid-btn-simpan').style.display = 'inline-block';
+  showOkMsg('rfid-msg-ok', '✓ UID terbaca! Klik Simpan untuk menyimpan.');
+}
+
+// Fallback: keyboard-based reader USB biasa
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('tab-import').classList.contains('active')) return;
+  if (!rfidSelected) return;
+  if (serialActive) return; // kalau Web Serial aktif, abaikan keyboard
+  const focused = document.activeElement;
+  if (focused && (focused.id === 'rfid-cari' || focused.id === 'rfid-manual')) return;
+  if (e.key === 'Enter') {
+    if (rfidBuf.length > 2) setRfidCaptured(rfidBuf.trim().toUpperCase());
+    rfidBuf = '';
+    if (rfidTimeout) clearTimeout(rfidTimeout);
+  } else if (e.key.length === 1) {
+    rfidBuf += e.key;
+    if (rfidTimeout) clearTimeout(rfidTimeout);
+    rfidTimeout = setTimeout(() => { rfidBuf = ''; }, 500);
+  }
+});
+
+async function simpanUID() {
+  if (!rfidSelected || !rfidCaptured) return;
+  const s = rfidSiswaAll.find(x => String(x.id) === String(rfidSelected));
+  if (!s) return;
+  const body = { nis: s.nis, nama: s.nama, kelas: s.kelas, jk: s.jk || 'L', hp_ortu: s.hp_ortu || '', uid_rfid: rfidCaptured };
+  const res  = await api('/siswa', 'POST', body);
+  if (res?.success) {
+    s.uid_rfid = rfidCaptured;
+    showOkMsg('rfid-msg-ok', `✓ UID berhasil disimpan untuk ${s.nama}!`);
+    document.getElementById('rfid-btn-simpan').style.display = 'none';
+    const display     = document.getElementById('rfid-display');
+    display.style.color       = 'var(--muted)';
+    display.style.fontSize    = '13px';
+    display.style.fontFamily  = 'inherit';
+    display.style.letterSpacing = '0';
+    display.textContent = serialActive ? '⏳ Tap kartu siswa berikutnya...' : 'Pilih siswa berikutnya';
+    rfidSelected = null; rfidCaptured = null;
+    renderRfidList(rfidSiswaAll);
+  } else {
+    showErrMsg('rfid-msg-err', res?.error || 'Gagal menyimpan UID');
+  }
+}
+
+function hideRfidMsg() { ['rfid-msg-ok','rfid-msg-err'].forEach(id => document.getElementById(id).style.display='none'); }
+
+// ===== STARTUP: pilih mode awal =====
+if (token) {
+  // Sudah pernah login sebelumnya & token tersimpan → langsung masuk app
+  document.getElementById('publik').style.display = 'none';
+  document.getElementById('login').style.display  = 'none';
+  document.getElementById('app').style.display    = 'block';
+  initApp();
+} else {
+  // Belum login → tampilkan mode publik (read-only, tanpa nama siswa)
+  tampilPublik();
+}
+
+document.getElementById('lp').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
+setInterval(() => {
+  if (document.querySelector('#tab-dashboard.active')) loadDashboard();
+  if (document.querySelector('#tab-izin.active'))      loadIzin();
+  if (document.getElementById('publik').style.display !== 'none') loadPublikData();
+}, 30000);
+</script>
+</body>
+</html>

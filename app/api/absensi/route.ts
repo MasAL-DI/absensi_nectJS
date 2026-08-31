@@ -18,7 +18,6 @@ export const runtime = 'nodejs';
 export const POST = handle(async (req: NextRequest) => {
   const body = await getBody(req);
   const uid = String(body.uid ?? '').trim();
-  const kelasEsp = String(body.kelas ?? '').trim(); // kelas dari ESP32
   const deviceId = String(body.device_id ?? '').trim(); // ID perangkat (opsional, untuk log)
 
   if (!uid) {
@@ -37,8 +36,8 @@ export const POST = handle(async (req: NextRequest) => {
     return NextResponse.json({ status: 'tidak_terdaftar', pesan: 'Kartu tidak terdaftar', uid });
   }
 
-  // Kelas: prioritaskan dari database siswa, fallback ke ESP32
-  const kelasFinal = siswa.kelas || kelasEsp;
+  // Kelas selalu diambil dari database siswa (device tidak perlu mengirim kelas lagi)
+  const kelasFinal = siswa.kelas;
 
   const tanggal = todayJakarta();
   const waktu = timeJakarta();
